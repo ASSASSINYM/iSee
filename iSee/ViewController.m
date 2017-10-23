@@ -49,7 +49,10 @@ typedef enum : NSUInteger {
 
 @property (weak) IBOutlet NSTextField *excutePathTextField;
 
+@property (weak) IBOutlet NSTextFieldCell *linkMapPathTextField;
+
 @property (nonatomic, retain) NSString *linkMapFilePath;
+
 
 @property (strong, nonatomic) NSMutableArray *dataSource;
 
@@ -115,7 +118,10 @@ typedef enum : NSUInteger {
 }
 
 - (IBAction)resetResultsBtnClicked:(NSButton *)sender {
-
+    self.excuteFilePath = @"";
+    self.excutePathTextField.stringValue = @"";
+    self.linkMapFilePath = @"";
+    self.linkMapPathTextField.stringValue = @"";
 }
 
 - (IBAction)backAction:(id)sender {
@@ -136,7 +142,29 @@ typedef enum : NSUInteger {
             NSURL *selectURL = [[self.fileSelectPanel URLs] firstObject];
             self.excuteFilePath = [selectURL path];
             self.excutePathTextField.stringValue = [selectURL path];
-            [self startAnalyExcuteFile];
+            if (self.linkMapFilePath.length > 0) {
+                [self startAnalyExcuteFile];
+            }else {
+                self.titleTextField.stringValue = @"需要配置LinkMap文件地址";
+                
+            }
+
+        }
+    }];
+}
+- (IBAction)openLinkMapAction:(id)sender {
+    [self constructFileSelect];
+    [_fileSelectPanel beginSheetModalForWindow:  [[NSApplication sharedApplication] mainWindow] completionHandler:^(NSInteger result){
+        if (result == NSFileHandlingPanelOKButton) {
+            NSURL *selectURL = [[self.fileSelectPanel URLs] firstObject];
+            self.linkMapFilePath = [selectURL path];
+            self.linkMapPathTextField.stringValue = [selectURL path];
+            
+            if (self.excuteFilePath.length > 0) {
+                [self startAnalyExcuteFile];
+            }else {
+                self.titleTextField.stringValue = @"需要配置可执行文件地址";
+            }
         }
     }];
 }
@@ -180,6 +208,8 @@ typedef enum : NSUInteger {
     [self.resultList addObjectsFromArray:[objectsArray subarrayWithRange: range]];
     
     [self buildDataSource];
+    
+    [self startAnylyUnused];
 }
 
 - (void)onHandleArchTypeFoundMsg:(NSNotification *)notification
@@ -309,7 +339,7 @@ typedef enum : NSUInteger {
             NSRange range = [aLineStr rangeOfString: @":"];
             range.location += 2;
             range.length = aLineStr.length - range.location;
-            NSString *arcTypeStr = [aLineStr substringWithRange: range];
+            NSString *arcTypeStr = [[aLineStr substringWithRange: range] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
             [[NSNotificationCenter defaultCenter] postNotificationName: ARC_TYPE_FIOUND_NOTIFICATION  object: arcTypeStr];
         }
         if ([_linkMapParser isSectionStartFlag:aLineStr]) {
@@ -354,6 +384,10 @@ typedef enum : NSUInteger {
 }
 
 - (void)startAnalyExcuteFile {
+    [[NSNotificationCenter defaultCenter] postNotificationName: ANALYZE_BEGIN_NOTIFICATION  object: self.linkMapFilePath];
+}
+
+- (void)startAnylyUnused {
     if ([self.excuteFilePath length] == 0) {
         return;
     }
@@ -369,9 +403,7 @@ typedef enum : NSUInteger {
             [self buildDataSource];
         });
     });
-    
 }
-
 
 
 - (void)startAnalyUsedSelector {
@@ -386,7 +418,7 @@ typedef enum : NSUInteger {
     [argvals addObject:@"__objc_selrefs"];
     [argvals addObject:self.excuteFilePath];
     [argvals addObject:@"-arch"];
-    [argvals addObject:@"arm64"];
+    [argvals addObject:self.arcTypeTextField.stringValue];
     
     [task setArguments:argvals];
     
@@ -417,7 +449,7 @@ typedef enum : NSUInteger {
     [argvals addObject:@"-o"];
     [argvals addObject:self.excuteFilePath];
     [argvals addObject:@"-arch"];
-    [argvals addObject:@"arm64"];
+    [argvals addObject:self.arcTypeTextField.stringValue];
     
     [task setArguments:argvals];
     

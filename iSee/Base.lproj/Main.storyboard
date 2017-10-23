@@ -731,13 +731,13 @@ Gw
                                 </constraints>
                             </progressIndicator>
                             <scrollView autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="F5X-sE-XLc">
-                                <rect key="frame" x="0.0" y="0.0" width="549" height="336"/>
+                                <rect key="frame" x="0.0" y="0.0" width="549" height="312"/>
                                 <clipView key="contentView" id="Ubc-yv-Ked">
-                                    <rect key="frame" x="1" y="0.0" width="547" height="335"/>
+                                    <rect key="frame" x="1" y="0.0" width="547" height="311"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" columnSelection="YES" multipleSelection="NO" autosaveColumns="NO" rowSizeStyle="automatic" headerView="llk-Bj-nHk" viewBased="YES" id="JDV-IZ-6Fi">
-                                            <rect key="frame" x="0.0" y="0.0" width="547" height="312"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="547" height="288"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <size key="intercellSpacing" width="3" height="2"/>
                                             <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -853,6 +853,26 @@ Gw
                                     <action selector="switchAction:" target="XfG-lQ-9wD" id="lYD-0B-iXG"/>
                                 </connections>
                             </segmentedControl>
+                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="zQd-6u-YdE">
+                                <rect key="frame" x="6" y="319" width="84" height="19"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <buttonCell key="cell" type="roundRect" title="linkMap文件" bezelStyle="roundedRect" alignment="center" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="pv5-YO-XTr">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" size="12" name=".PingFangSC-Regular"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="openLinkMapAction:" target="XfG-lQ-9wD" id="Qlg-CN-7tj"/>
+                                </connections>
+                            </button>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="reH-8k-xAx">
+                                <rect key="frame" x="94" y="320" width="437" height="18"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" enabled="NO" sendsActionOnEndEditing="YES" placeholderString="DeriveData/**/Build/Intermediates/**.build/**/**.build/**LinkMap**.txt" id="5fV-ih-8rA">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
                         </subviews>
                         <constraints>
                             <constraint firstItem="vb5-J1-QkS" firstAttribute="leading" secondItem="7GS-6i-VHQ" secondAttribute="trailing" constant="8" id="69c-rh-GYJ"/>
@@ -863,7 +883,7 @@ Gw
                             <constraint firstItem="oD2-EC-pDI" firstAttribute="top" secondItem="KsN-t6-jdu" secondAttribute="bottom" constant="9" id="ENw-yq-Sh9"/>
                             <constraint firstItem="BZZ-CE-CMP" firstAttribute="top" secondItem="m2S-Jp-Qdl" secondAttribute="top" constant="13" id="GG4-wn-CFe"/>
                             <constraint firstAttribute="trailing" secondItem="gYK-CT-doD" secondAttribute="trailing" constant="10" id="JNO-PD-tIF"/>
-                            <constraint firstItem="F5X-sE-XLc" firstAttribute="top" secondItem="WRX-O4-IkK" secondAttribute="bottom" constant="10" id="LPV-c2-6Ki"/>
+                            <constraint firstItem="F5X-sE-XLc" firstAttribute="top" secondItem="WRX-O4-IkK" secondAttribute="bottom" constant="34" id="LPV-c2-6Ki"/>
                             <constraint firstAttribute="trailing" secondItem="zH8-bd-9Tl" secondAttribute="trailing" id="MXH-ar-wxO"/>
                             <constraint firstAttribute="trailing" secondItem="BZZ-CE-CMP" secondAttribute="trailing" constant="10" id="MYW-gW-Q4j"/>
                             <constraint firstItem="BZZ-CE-CMP" firstAttribute="leading" secondItem="Zx1-FY-TN7" secondAttribute="trailing" constant="38" id="Mat-MR-ZXy"/>
@@ -896,6 +916,7 @@ Gw
                         <outlet property="backButtion" destination="mu4-QO-QWT" id="Pzi-ky-hIK"/>
                         <outlet property="currentLevelTextField" destination="7GS-6i-VHQ" id="uHY-N6-p9K"/>
                         <outlet property="excutePathTextField" destination="WRX-O4-IkK" id="NKZ-Uv-Yod"/>
+                        <outlet property="linkMapPathTextField" destination="5fV-ih-8rA" id="OIi-ox-1C9"/>
                         <outlet property="resultTextField" destination="No7-x7-UUG" id="F7M-Ao-7Er"/>
                         <outlet property="segment" destination="BZZ-CE-CMP" id="wTT-TB-9F2"/>
                         <outlet property="tableView" destination="JDV-IZ-6Fi" id="2Ul-Vt-N0f"/>
