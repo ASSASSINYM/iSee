@@ -21,6 +21,8 @@
 		566122F21B79CCF4001D5057 /* iSeeTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 566122F11B79CCF4001D5057 /* iSeeTests.m */; };
 		566B6B101BD8730D00548F4A /* ExecutableCodeItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 566B6B0F1BD8730D00548F4A /* ExecutableCodeItem.m */; };
 		566B6B131BD879DD00548F4A /* NSString+Split.m in Sources */ = {isa = PBXBuildFile; fileRef = 566B6B121BD879DD00548F4A /* NSString+Split.m */; };
+		6E01E8921EF134ED008C1D92 /* ModuleItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 6E01E8911EF134ED008C1D92 /* ModuleItem.m */; };
+		6E01E8951EF264EA008C1D92 /* ObjectSecionItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 6E01E8941EF264EA008C1D92 /* ObjectSecionItem.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -64,6 +66,10 @@
 		566B6B0F1BD8730D00548F4A /* ExecutableCodeItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ExecutableCodeItem.m; sourceTree = "<group>"; };
 		566B6B111BD879DD00548F4A /* NSString+Split.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+Split.h"; sourceTree = "<group>"; };
 		566B6B121BD879DD00548F4A /* NSString+Split.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+Split.m"; sourceTree = "<group>"; };
+		6E01E8901EF134ED008C1D92 /* ModuleItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ModuleItem.h; sourceTree = "<group>"; };
+		6E01E8911EF134ED008C1D92 /* ModuleItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ModuleItem.m; sourceTree = "<group>"; };
+		6E01E8931EF264EA008C1D92 /* ObjectSecionItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ObjectSecionItem.h; sourceTree = "<group>"; };
+		6E01E8941EF264EA008C1D92 /* ObjectSecionItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ObjectSecionItem.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -137,12 +143,16 @@
 				561DDBF31B79FEC100226695 /* ObjectFileItem.m */,
 				561DDBF51B79FF0700226695 /* StaticFileItem.h */,
 				561DDBF61B79FF0700226695 /* StaticFileItem.m */,
-				561DDBF81B79FF5900226695 /* MethodFileItem.h */,
 				566B6B0E1BD8730D00548F4A /* ExecutableCodeItem.h */,
 				566B6B0F1BD8730D00548F4A /* ExecutableCodeItem.m */,
+				561DDBF81B79FF5900226695 /* MethodFileItem.h */,
 				561DDBF91B79FF5900226695 /* MethodFileItem.m */,
 				5608CC761B8EAE6D0058E846 /* GSLinkMapParser.h */,
 				5608CC771B8EAE6D0058E846 /* GSLinkMapParser.m */,
+				6E01E8901EF134ED008C1D92 /* ModuleItem.h */,
+				6E01E8911EF134ED008C1D92 /* ModuleItem.m */,
+				6E01E8931EF264EA008C1D92 /* ObjectSecionItem.h */,
+				6E01E8941EF264EA008C1D92 /* ObjectSecionItem.m */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -307,10 +317,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6E01E8921EF134ED008C1D92 /* ModuleItem.m in Sources */,
 				566122E11B79CCF4001D5057 /* ViewController.m in Sources */,
 				566B6B101BD8730D00548F4A /* ExecutableCodeItem.m in Sources */,
 				561DDBFA1B79FF5900226695 /* MethodFileItem.m in Sources */,
 				566B6B131BD879DD00548F4A /* NSString+Split.m in Sources */,
+				6E01E8951EF264EA008C1D92 /* ObjectSecionItem.m in Sources */,
 				5608CC781B8EAE6D0058E846 /* GSLinkMapParser.m in Sources */,
 				5608CC661B8DC3240058E846 /* DDFileReader.m in Sources */,
 				561DDBF41B79FEC100226695 /* ObjectFileItem.m in Sources */,

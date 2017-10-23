@@ -18,8 +18,12 @@
 #define SYMBOLS_FILE_LOG_START_FLAG @"# Symbols:\n"
 #define SYMBOLS_FILE_LOG  @"0x1000061F0     0x000000AC      [  1] +[CJSONScanner initialize]"
 
+#define SYMBOLS_FILE_LOG_DEAD_SYMBOLS_FLAG @"# Dead Stripped Symbols:\n"
+
 #define RESULTS_DONE_NOTIFICATION @"resultsDone"
 #define ARC_TYPE_FIOUND_NOTIFICATION @"arcTypeFound"
 #define ANALYZE_PROGRESS_UPDATE_NOTIFICATION @"analyzeProgressUpdate"
+
+#define ANALYZE_BEGIN_NOTIFICATION @"analyzeBegin"
 
 #endif

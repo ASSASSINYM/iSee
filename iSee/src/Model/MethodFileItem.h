@@ -17,4 +17,8 @@
 
 @property (nonatomic, assign) long int size;
 
+@property (nonatomic, assign) NSString *fileTypeName;
+
+@property (nonatomic, assign) long int startAddress;
+
 @end

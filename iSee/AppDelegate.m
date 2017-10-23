@@ -33,9 +33,6 @@
     [_fileSelectPanel setAllowsMultipleSelection: NO];
     [_fileSelectPanel setTreatsFilePackagesAsDirectories: YES];
     [_fileSelectPanel setAllowedFileTypes:@[@"txt"]];
-    
-    _linkMapParser = [[GSLinkMapParser alloc] init];
-
 }
 
 - (void)constructFileReader
@@ -62,42 +59,10 @@
     [_fileSelectPanel beginSheetModalForWindow:  [[NSApplication sharedApplication] mainWindow] completionHandler:^(NSInteger result){
         if (result == NSFileHandlingPanelOKButton) {
             NSURL *selectURL = [[self.fileSelectPanel URLs] firstObject];
-            self.selectedFilePath = [selectURL path];
-            [self constructFileReader];
-            [self extractLinkMapDataFromFile];
-            [self outputAnalysisResults];
+             [[NSNotificationCenter defaultCenter] postNotificationName: ANALYZE_BEGIN_NOTIFICATION  object: [selectURL path]];
         }
     }];
 }
-
-- (void)extractLinkMapDataFromFile
-{
-    NSString *aLineStr = [_textFileReader readLine];
-    while (aLineStr) {
-        if ([aLineStr hasPrefix: @"# Arch:"]) {//found code type
-            NSRange range = [aLineStr rangeOfString: @":"];
-            range.location += 2;
-            range.length = aLineStr.length - range.location;
-            NSString *arcTypeStr = [aLineStr substringWithRange: range];
-            [[NSNotificationCenter defaultCenter] postNotificationName: ARC_TYPE_FIOUND_NOTIFICATION  object: arcTypeStr];
-        }
-        if ([_linkMapParser isSectionStartFlag:aLineStr]) {
-            
-            [_linkMapParser startSubParserWithStartFlag: aLineStr];
-            aLineStr = [_linkMapParser lastLinkMapLineLog];
-            
-            continue;
-        }
-        
-        aLineStr = [_textFileReader readLine];
-    }
-}
-
-- (void)outputAnalysisResults
-{
-    [_linkMapParser outputObjectFileSize];
-}
-
 
 
 @end

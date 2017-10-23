@@ -27,4 +27,9 @@ typedef enum{
 
 @property (nonatomic, assign) long int size;
 
+@property (nonatomic, assign) long int startAddress;
+
+@property (nonatomic, copy, readonly) NSString *segmentTypeStr;
+
+
 @end

@@ -22,6 +22,8 @@
  */
 - (BOOL)isSectionStartFlag:(NSString *)aLineStr;
 
+- (BOOL)isSectionEndFlag:(NSString *)aLineStr;
+
 /**
  *  根据linkMap 不同段的标识字符串 开始对不同section的log解析
  *
@@ -32,5 +34,7 @@
 - (NSString *)lastLinkMapLineLog;
 
 - (void)outputObjectFileSize;
+
+- (void)updateAnalyzeProgress:(double)progress;
 
 @end

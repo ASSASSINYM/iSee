@@ -10,4 +10,18 @@
 
 @implementation ExecutableCodeItem
 
+- (NSString *)segmentTypeStr {
+    switch (_segmentType) {
+        case CodeType_TEXT:
+            return SEGMENT_TYPE_CODE;
+            break;
+        case CodeType_DATA:
+            return SEGMENT_TYPE_DATA;
+            break;
+        default:
+            break;
+    }
+    return @"";
+}
+
 @end
