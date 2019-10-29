@@ -25,6 +25,8 @@
 
 @implementation AppDelegate
 
+// ADD Code Review
+
 - (void)constructManager
 {
     _fileSelectPanel = [[NSOpenPanel alloc] init];
