@@ -407,6 +407,7 @@ typedef enum : NSUInteger {
 
 
 - (void)startAnalyUsedSelector {
+  // 分析未使用的方法
     NSTask *task = [[NSTask alloc] init];
     [task setLaunchPath: @"/usr/bin/otool"];
     
@@ -421,11 +422,11 @@ typedef enum : NSUInteger {
     [argvals addObject:self.arcTypeTextField.stringValue];
     
     [task setArguments:argvals];
-    
+    // 运行脚本命令
     NSPipe *pipe = [NSPipe pipe];
     [task setStandardOutput: pipe];
     NSFileHandle *file = [pipe fileHandleForReading];
-    
+  
     // Run task
     [task launch];
     
@@ -607,6 +608,7 @@ typedef enum : NSUInteger {
 # pragma mark - Anylyze
 
 - (void)anylyzeUsedMethodWithData:(NSString *)string {
+  // 解析结果，分解数据
     if (string.length) {
         //数据清空
         for (ObjectFileItem *file in self.resultList) {
