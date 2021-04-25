@@ -203,10 +203,8 @@ typedef enum : NSUInteger {
     [self.resultList removeAllObjects];
     
     NSMutableArray *objectsArray = notification.object;
-    NSUInteger length = objectsArray.count - 2;
-    NSRange range = NSMakeRange(2, length);
-    [self.resultList addObjectsFromArray:[objectsArray subarrayWithRange: range]];
-    
+
+    [self.resultList addObjectsFromArray:objectsArray];
     [self buildDataSource];
     
     [self startAnylyUnused];
@@ -214,7 +212,10 @@ typedef enum : NSUInteger {
 
 - (void)onHandleArchTypeFoundMsg:(NSNotification *)notification
 {
-    [_arcTypeTextField setStringValue: (NSString *)notification.object];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [_arcTypeTextField setStringValue: (NSString *)notification.object];
+    });
+   
 }
 
 - (void)onHandleAnalyzeProgressMsg:(NSNotification *)notification
@@ -316,8 +317,10 @@ typedef enum : NSUInteger {
     NSTextFieldCell *textField = (NSTextFieldCell *)cell;
     textField.textColor = [NSColor blackColor];
     if (self.segment.selectedSegment == ESourceSegmentAll && self.level == EnumLevelModule && [tableColumn.identifier isEqualToString:kTableColumnName]) {
-        ObjectFileItem *item = [self.dataSource objectAtIndex:row];
-        textField.textColor = item.hasUesd ? [NSColor blackColor] : [NSColor redColor];
+        id item = [self.dataSource objectAtIndex:row];
+        if ([item isKindOfClass: [ObjectFileItem class]]) {
+            textField.textColor = ((ObjectFileItem *)item).hasUesd ? [NSColor blackColor] : [NSColor redColor];
+        }
     }
 }
 
@@ -388,25 +391,30 @@ typedef enum : NSUInteger {
 }
 
 - (void)startAnylyUnused {
-    if ([self.excuteFilePath length] == 0) {
-        return;
-    }
-    [self.unUsedSelectorList removeAllObjects];
-    [self.unUsedClassList removeAllObjects];
-    
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        [self startAnalyUsedSelector];
-        [self startAnalyUsedClass];
-        
-        dispatch_async(dispatch_get_main_queue(), ^{
-            self.segment.enabled = YES;
-            [self buildDataSource];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if ([self.excuteFilePath length] == 0) {
+            return;
+        }
+        [self.unUsedSelectorList removeAllObjects];
+        [self.unUsedClassList removeAllObjects];
+        NSString *filePath = self.excuteFilePath;
+        NSString *arcType = self.arcTypeTextField.stringValue;
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            [self startAnalyUsedSelector:filePath archType:arcType];
+            [self startAnalyUsedClass:filePath archType:arcType];
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                self.segment.enabled = YES;
+                [self buildDataSource];
+            });
         });
     });
+
 }
 
 
-- (void)startAnalyUsedSelector {
+- (void)startAnalyUsedSelector:(NSString *)filePath archType:(NSString *)arcType {
+    NSLog(@"startAnalyUsedSelector = %@",filePath);
   // 分析未使用的方法
     NSTask *task = [[NSTask alloc] init];
     [task setLaunchPath: @"/usr/bin/otool"];
@@ -417,30 +425,32 @@ typedef enum : NSUInteger {
     [argvals addObject:@"-s"];
     [argvals addObject:@"__DATA"];
     [argvals addObject:@"__objc_selrefs"];
-    [argvals addObject:self.excuteFilePath];
+    [argvals addObject:filePath];
     [argvals addObject:@"-arch"];
-    [argvals addObject:self.arcTypeTextField.stringValue];
+    [argvals addObject:arcType];
+    [argvals addObject:@">> ~/Desktop/resultaaa.txt"];
     
     [task setArguments:argvals];
     // 运行脚本命令
     NSPipe *pipe = [NSPipe pipe];
     [task setStandardOutput: pipe];
+    [task setStandardError:pipe];
     NSFileHandle *file = [pipe fileHandleForReading];
   
     // Run task
     [task launch];
-    
     // Read the response
     NSData *data = [file readDataToEndOfFile];
     NSString *string = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-    
+    NSLog(@"string = %@",string);
     // See if we can create a lines array
     if (string.length) {
         [self anylyzeUsedMethodWithData:string];
     }
 }
 
-- (void)startAnalyUsedClass {
+- (void)startAnalyUsedClass:(NSString *)filePath archType:(NSString *)arcType {
+    NSLog(@"startAnalyUsedClass = %@",filePath);
     NSTask *task = [[NSTask alloc] init];
     [task setLaunchPath: @"/usr/bin/otool"];
     
@@ -448,9 +458,9 @@ typedef enum : NSUInteger {
     
     [argvals addObject:@"-V"];
     [argvals addObject:@"-o"];
-    [argvals addObject:self.excuteFilePath];
+    [argvals addObject:filePath];
     [argvals addObject:@"-arch"];
-    [argvals addObject:self.arcTypeTextField.stringValue];
+    [argvals addObject:arcType];
     
     [task setArguments:argvals];
     
@@ -464,7 +474,7 @@ typedef enum : NSUInteger {
     // Read the response
     NSData *data = [file readDataToEndOfFile];
     NSString *string = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-    
+
     [self anylyzeUsedClassWithData:string];
 }
 
@@ -472,38 +482,40 @@ typedef enum : NSUInteger {
 #pragma mark - DataSource
 
 - (void)buildDataSource {
-    
-    [self.dataSource removeAllObjects];
-    
-    
-    switch (self.segment.selectedSegment) {
-        case ESourceSegmentAll: {
-            [self buildAllSource];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.dataSource removeAllObjects];
+        
+        
+        switch (self.segment.selectedSegment) {
+            case ESourceSegmentAll: {
+                [self buildAllSource];
+            }
+                break;
+            case ESourceSegmentUnusedClass: {
+                [self buildUnUsedClass];
+            }
+                break;
+            case ESourceSegmentUnusedSelector: {
+                [self buildUnUsedSelector];
+            }
+                break;
+            default:
+                break;
         }
-            break;
-        case ESourceSegmentUnusedClass: {
-            [self buildUnUsedClass];
-        }
-            break;
-        case ESourceSegmentUnusedSelector: {
-            [self buildUnUsedSelector];
-        }
-            break;
-        default:
-            break;
-    }
-    
+        
 
-    [self.dataSource sortUsingComparator:^NSComparisonResult(id  _Nonnull obj1, id  _Nonnull obj2) {
-        return [[obj2 valueForKey:@"size"] compare:[obj1 valueForKey:@"size"]];
-    }];
-    
-    _fileSizeDesc = YES;
-    dispatch_async(dispatch_get_main_queue(), ^(){
-        [self.tableView reloadData];
-        [self.tableView scrollRowToVisible:0];
-        [self updateUI];
+        [self.dataSource sortUsingComparator:^NSComparisonResult(id  _Nonnull obj1, id  _Nonnull obj2) {
+            return [[obj2 valueForKey:@"size"] compare:[obj1 valueForKey:@"size"]];
+        }];
+        
+        _fileSizeDesc = YES;
+        dispatch_async(dispatch_get_main_queue(), ^(){
+            [self.tableView reloadData];
+            [self.tableView scrollRowToVisible:0];
+            [self updateUI];
+        });
     });
+   
 
 }
 
@@ -670,6 +682,7 @@ typedef enum : NSUInteger {
                 }
                 
                 //数据其实是一一对应的，如果没找到可能是异常了
+                // 从第0个开始找，如果找到了，就放在usedMethod里面，并继续循环
                 MethodFileItem *methodItem = [section.objectsList objectAtIndex:methodIndex];
                 if (methodItem.startAddress == startAddress) {
                     methodItem.name = method;
@@ -678,6 +691,7 @@ typedef enum : NSUInteger {
                     continue;
                 }
                 
+                // 如果没找到，循环遍历查找，找到后放入，，标记下methodIndex，并继续循环
                 for (int j = 0; j < [section.objectsList count]; j ++) {
                     MethodFileItem *methodItem = [section.objectsList objectAtIndex:j];
                     if (methodItem.startAddress == startAddress) {
@@ -695,8 +709,9 @@ typedef enum : NSUInteger {
         
         //填充数据
         for (ObjectFileItem *obj in self.resultList) {
-            ObjectSecionItem *allIvarSection = [obj.sectionDictionary objectForKey:@"__objc_ivar"];
             
+            // 将ivar的属性转为set方法，存入已使用方法表里
+            ObjectSecionItem *allIvarSection = [obj.sectionDictionary objectForKey:@"__objc_ivar"];
             for (MethodFileItem *method  in allIvarSection.objectsList) {
                 NSRange range = [method.name rangeOfString:@"." options:NSBackwardsSearch];
                 if (range.location == NSNotFound) {
@@ -721,6 +736,7 @@ typedef enum : NSUInteger {
                 
             }
             
+            // 获取这个类使用所有的方法名称
             ObjectSecionItem *allClassSection = [obj.sectionDictionary objectForKey:@"__objc_methname"];
             NSMutableDictionary *usedMethod = obj.usedMethod;
             for (MethodFileItem *method in allClassSection.objectsList) {
@@ -822,7 +838,7 @@ typedef enum : NSUInteger {
         ObjectSecionItem *section = nil;
         ObjectFileItem *obj = nil;
         
-        //需要找到对应哪个类的起始地址
+        //需要找到对应类的起始地址
         while (objIndex < [self.resultList count]) {
             obj = [self.resultList objectAtIndex:objIndex];
             section = [obj.sectionDictionary objectForKey:@"__objc_classrefs"];
@@ -872,11 +888,11 @@ typedef enum : NSUInteger {
         }
         
         for (MethodFileItem *methodItem in allProtocol.objectsList) {
-            //l_OBJC_LABEL_PROTOCOL_$_NSObject
-            if (![methodItem.name hasPrefix:@"l_OBJC_LABEL_PROTOCOL_$_"]) {
+            //__OBJC_LABEL_PROTOCOL_$_NSObject
+            if (![methodItem.name hasPrefix:@"__OBJC_LABEL_PROTOCOL_$_"]) {
                 continue;
             }
-            NSString *className = [methodItem.name substringFromIndex:@"l_OBJC_LABEL_PROTOCOL_$_".length];
+            NSString *className = [methodItem.name substringFromIndex:@"__OBJC_LABEL_PROTOCOL_$_".length];
             if (className.length == 0) {
                 continue;
             }

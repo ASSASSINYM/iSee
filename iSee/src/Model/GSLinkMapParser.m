@@ -81,12 +81,11 @@
 
 - (void)startSubParserWithStartFlag:(NSString *)aLineStr
 {
-    [_linkMapfileReader readLine]; //跳过一行
-    
     if ([aLineStr isEqualToString: OBJECT_FILE_LOG_START_FLAG]) {
         [self parseObjectFileLog];
     }else if ([aLineStr isEqualToString: SECTION_TABLE_START_FLAG])
     {
+        
         [self parseSectionTableLog];
     }else
     {
@@ -113,27 +112,42 @@
 - (void)parseObjectFileLog
 {
     NSMutableArray *tmpArray = [NSMutableArray arrayWithCapacity: 100];
-    ObjectFileItem *firstObjectFile = [[ObjectFileItem alloc] init];
-    firstObjectFile.fileType = OBJECT_FILE_FROM_INVALID_VAL;
-    [tmpArray addObject: firstObjectFile];
-    
-    ObjectFileItem *dTraceObject = [[ObjectFileItem alloc] init];
-    dTraceObject.fileType = OBJECT_FILE_FROM_INVALID_VAL;
-    [tmpArray addObject: dTraceObject];
-    
-    //普通工程代码(开发者自行创建的)
-    
-    //第三方静态库
-    
-    //系统库
+
     self.lastLineStr = [_linkMapfileReader readLine];
     while (![self isSectionStartFlag: _lastLineStr]) {//如果没检测到下一段不同类型log的起始标识串，则继续
-        NSRange range = [_lastLineStr rangeOfString:@"/"];
-        if (range.location != NSNotFound) {
-            NSString *pathStr  = [_lastLineStr substringFromIndex:range.location];
-            ObjectFileItem * objFileItem = [[ObjectFileItem alloc] init];
+//        NSLog(@"lastLine = %@",_lastLineStr);
+        if ([self.lastLineStr hasPrefix:@"#"]) {
+            self.lastLineStr = [_linkMapfileReader readLine];
+            continue;
+        }
+          
+        NSString *regexStr = @"\\[\\s*(\\d+)\\]\\s+(.+)";
+        NSRegularExpression* regexExpression = [NSRegularExpression regularExpressionWithPattern:regexStr options:NSRegularExpressionCaseInsensitive error:nil];
+        NSArray* matchs = [regexExpression matchesInString:self.lastLineStr options:0 range:NSMakeRange(0, self.lastLineStr.length)];
+        
+        if (matchs == nil || [matchs count] == 0) {
+            return;
+        }
+        
+        NSTextCheckingResult *checkingResult = [matchs objectAtIndex:0];
+        
+        if ([checkingResult numberOfRanges] < 3) {
+            return;
+        }
+        
+        NSString *indexStr = [self.lastLineStr substringWithRange:[checkingResult rangeAtIndex:1]];//索引
+        NSUInteger index = indexStr.integerValue;
+        NSString *path = [self.lastLineStr substringWithRange:[checkingResult rangeAtIndex:2]];//索引
+        NSRange range = [path rangeOfString:@"/"];
+        ObjectFileItem * objFileItem = [[ObjectFileItem alloc]             init];
+        if (range.location == NSNotFound) {
+            objFileItem.fileType = OBJECT_FILE_FROM_CUSTOM_CODE;
+            objFileItem.name     = path;
+            objFileItem.module = @"Custom";
+        } else {
+            NSString *pathStr  = [path substringFromIndex:range.location];
             NSString * objectFileName = [pathStr lastPathComponent];
-            
+//            NSLog(@"path = %@, fileName= %@",pathStr,objectFileName);
             if ([pathStr hasPrefix: CUSTOM_LIB_PATH_PREFIX]) {
                 NSRange bracketRange = [objectFileName rangeOfString: @"("];
                 if (bracketRange.location != NSNotFound ) {
@@ -159,9 +173,14 @@
                 objFileItem.module = @"System";
             }
             
-            [tmpArray addObject: objFileItem];
             double progress = [_linkMapfileReader readedFileSizeRatio];
             [self updateAnalyzeProgress: progress];
+        }
+        
+        if (tmpArray.count > index) {
+            [tmpArray replaceObjectAtIndex:index withObject:objFileItem];
+        } else {
+            [tmpArray addObject:objFileItem];
         }
         // one loop end, start parsing next line log
         self.lastLineStr = [_linkMapfileReader readLine];
@@ -179,14 +198,21 @@
 - (void)parseSectionTableLog
 {
     NSMutableArray *tmpArray = [[NSMutableArray alloc] initWithCapacity: 50];
-    self.lastLineStr = [_linkMapfileReader readLine];
     
+    self.lastLineStr = [_linkMapfileReader readLine];
+//    NSLog(@"parseSectionTableLog = %@",self.lastLineStr);
     while (![self isSectionStartFlag: _lastLineStr]) {
+        if ([self.lastLineStr hasPrefix:@"#"]) {
+            self.lastLineStr = [_linkMapfileReader readLine];
+            continue;
+        }
         NSArray *oneLineConponents = [_lastLineStr componentsSeparatedByString:@"\t"];
         NSString *address = oneLineConponents[0];
         NSString *sizeStr = oneLineConponents[1];
         NSString *segmentTypeStr = oneLineConponents[2];
         NSString *sectionNameStr = oneLineConponents[3];
+        
+//        NSLog(@"address = %@, sizeStr = %@ segmentTypeStr = %@ sectionNameStr = %@",address,sizeStr,segmentTypeStr,sectionNameStr);
         
         ExecutableCodeItem *codeItem = [[ExecutableCodeItem alloc] init];
         codeItem.size = strtoul([sizeStr UTF8String], 0, 16);
@@ -218,7 +244,13 @@
 {
     self.lastLineStr = [_linkMapfileReader readLine];
     self.currentExecutableIndex = 0;
+//    NSLog(@"parseSymbolTableLog = %@",self.lastLineStr);
     while (_lastLineStr  && ![self isSectionStartFlag: _lastLineStr]) {
+        if ([self.lastLineStr hasPrefix:@"#"]) {
+            self.lastLineStr = [_linkMapfileReader readLine];
+            continue;
+        }
+//        NSLog(@"_lastLineStr = %@", _lastLineStr);
         [self parseOneLineSymbolLog: _lastLineStr];
         NSString *lastLineStr = [self nextLineSymbolLog];
         self.lastLineStr = lastLineStr;
@@ -273,6 +305,7 @@
  */
 - (void)parseOneLineSymbolLog:(NSString *)oneLineLog
 {
+//    NSLog(@"parseOneLineSymbolLog = %@", oneLineLog);
     //过滤非目标串
     NSString *filtreString = @"\t * \n * \x10\n * %@\n * \r\n";
     NSRange range = [filtreString rangeOfString: oneLineLog];
@@ -301,13 +334,11 @@
     NSString *indexStr = [oneLineLog substringWithRange:[checkingResult rangeAtIndex:3]];//索引
     NSString *name = [oneLineLog substringWithRange:[checkingResult rangeAtIndex:4]];//名称
     
-    
     long startAddress = strtoul([startAddressStr UTF8String], 0, 16);
     long size = strtoul([sizeStr UTF8String], 0, 16);
     NSUInteger index = indexStr.integerValue;
     
     ExecutableCodeItem *executable = [self excutableItem:startAddress];//段名称
-    
     //添加到所属的目标文件
     if (index < _objectFileArray.count) {
         ObjectFileItem *targetObjectFile = _objectFileArray[ index ];
@@ -329,6 +360,8 @@
         funcItem.fileTypeName = executable.name;
         funcItem.startAddress = startAddress;
         [section.objectsList addObject:funcItem];
+        
+//        NSLog(@"startAddress = %@ size = %@ index = %@ name = %@ target = %@ section = %@",startAddressStr,sizeStr,indexStr,name,targetObjectFile, executable.name);
     }
 }
 
